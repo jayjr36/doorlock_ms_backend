@@ -38,13 +38,20 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid login credentials'], 401);
         }
 
-        /** @var \App\Models\User $user **/ 
+        /** @var \App\Models\User $user **/
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['token' => $token, 'token_type' => 'Bearer']);
+        return response()->json([
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ]
+        ]);
     }
-
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
