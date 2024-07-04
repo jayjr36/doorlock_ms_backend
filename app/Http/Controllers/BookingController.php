@@ -66,7 +66,7 @@ class BookingController extends Controller
     {
         $user = Auth::user();
 
-        $bookings = Password::with('room')
+        $bookings = Booking::with('room')
             ->where('user_id', $user->id)
             ->get();
 
