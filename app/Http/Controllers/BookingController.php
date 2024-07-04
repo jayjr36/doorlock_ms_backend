@@ -48,7 +48,7 @@ class BookingController extends Controller
            // return response()->json(['password' => '123456']);
         }
     
-        $password = Password::where('room_id', $roomNumber)
+        $password = Booking::where('room_id', $roomNumber)
                             ->where('expires_at', '>', now())
                             ->latest()
                             ->first();
@@ -65,11 +65,20 @@ class BookingController extends Controller
     public function getUserBookings(Request $request)
     {
         $user = Auth::user();
-
+    
         $bookings = Booking::with('room')
             ->where('user_id', $user->id)
             ->get();
-
-        return response()->json($bookings);
+    
+        $formattedBookings = $bookings->map(function($booking) {
+            return [
+                'room_number' => $booking->room->number,
+                'password' => $booking->password,
+                'expiry_time' => $booking->expires_at,
+            ];
+        });
+    
+        return response()->json($formattedBookings);
     }
+    
 }
