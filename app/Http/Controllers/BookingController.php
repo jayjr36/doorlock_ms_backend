@@ -14,30 +14,44 @@ class BookingController extends Controller
     public function bookRoom(Request $request)
     {
         $request->validate([
-            'room' => 'required|exists:rooms,number',
-            'days' => 'required|integer|min:1',
-            'amount' => 'required|numeric',
-            'card_number' => 'required|string',
-            'expiry_date' => 'required|string',
-            'cvv' => 'required|string',
+            'room' => 'required',
+            'days' => 'required',
+            'amount' => 'required',
+            'card_number' => 'required',
+            'expiry_date' => 'required',
+            'cvv' => 'required',
+            'user_id' => 'required',
         ]);
-
+    
         // Dummy payment processing logic
         if ($request->amount < 100) { 
             return response()->json(['message' => 'Insufficient payment'], 400);
         }
-
+    
         $room = Room::where('number', $request->room)->first();
+    
+        if (!$room) {
+            return response()->json(['message' => 'Room not found'], 404);
+        }
+    
+        $user = $request->user_id;
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+    
+        $days = (int) $request->days;
 
         $booking = new Booking();
         $booking->room_id = $room->id;
-        $booking->user_id = $request->user()->id;
+        $booking->user_id = $request->user_id;
         $booking->password = rand(100000, 999999);
-        $booking->expires_at = Carbon::now()->addDays($request->days);
+        $booking->expires_at = Carbon::now()->addDays($days);
         $booking->save();
-
+    
         return response()->json(['password' => $booking->password, 'expiry_time' => $booking->expires_at]);
     }
+    
+    
 
     public function getRoomPassword($roomNumber)
     {
@@ -64,10 +78,10 @@ class BookingController extends Controller
 
     public function getUserBookings(Request $request)
     {
-        $user = Auth::user();
+        $userId = $request->input('userId') ?? Auth::id(); // Use userId from request if provided, otherwise use authenticated user's ID
     
         $bookings = Booking::with('room')
-            ->where('user_id', $user->id)
+            ->where('user_id', $userId)
             ->get();
     
         $formattedBookings = $bookings->map(function($booking) {
@@ -80,5 +94,6 @@ class BookingController extends Controller
     
         return response()->json($formattedBookings);
     }
+    
     
 }
