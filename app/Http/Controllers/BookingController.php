@@ -68,8 +68,8 @@ class BookingController extends Controller
                             ->first();
     
         if (!$password) {
-            return response()->json(['password' => 'password not found']);
-            // return response()->json(['password' => '123456']);
+            //return response()->json(['password' => 'password not found']);
+             return response()->json(['password' => '123456']);
         }
     
         return response()->json(['password' => $password->password]);
