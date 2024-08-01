@@ -15,7 +15,7 @@ class BookingController extends Controller
     {
         $request->validate([
             'room' => 'required',
-            'days' => 'required',
+            'days' => 'required', // Here "days" actually means 5-minute units
             'amount' => 'required',
             'card_number' => 'required',
             'expiry_date' => 'required',
@@ -24,7 +24,7 @@ class BookingController extends Controller
         ]);
     
         // Dummy payment processing logic
-        if ($request->amount < 100) { 
+        if ($request->amount < 10000) { 
             return response()->json(['message' => 'Insufficient payment'], 400);
         }
     
@@ -39,18 +39,18 @@ class BookingController extends Controller
             return response()->json(['message' => 'User not authenticated'], 401);
         }
     
-        $days = (int) $request->days;
-
+        $days = (int) $request->days; 
+        $minutes = $days * 5; 
+    
         $booking = new Booking();
         $booking->room_id = $room->id;
         $booking->user_id = $request->user_id;
         $booking->password = rand(100000, 999999);
-        $booking->expires_at = Carbon::now()->addDays($days);
+        $booking->expires_at = Carbon::now()->addMinutes($minutes); // Set expiration time
         $booking->save();
     
         return response()->json(['password' => $booking->password, 'expiry_time' => $booking->expires_at]);
-    }
-    
+    }    
     
 
     public function getRoomPassword($roomNumber)
